@@ -15,23 +15,21 @@ export default {
   },
   async auth(context, payload) {
     const mode = payload.mode;
-    let url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=';
-    
-    if (mode === 'signup') {
-      url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=';
-    }
+    let url =
+      'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=';
 
-    const response = await fetch(
-      url,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          email: payload.email,
-          password: payload.password,
-          returnSecureToken: true
-        })
-      }
-    );
+    if (mode === 'signup') {
+      url =
+        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=';
+    }
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        email: payload.email,
+        password: payload.password,
+        returnSecureToken: true
+      })
+    });
 
     const responseData = await response.json();
 
@@ -43,6 +41,7 @@ export default {
     }
 
     const expiresIn = +responseData.expiresIn * 1000;
+    // const expiresIn = 5000;
     const expirationDate = new Date().getTime() + expiresIn;
 
     localStorage.setItem('token', responseData.idToken);
@@ -55,8 +54,7 @@ export default {
 
     context.commit('setUser', {
       token: responseData.idToken,
-      userId: responseData.localId,
-      tokenExpiration: expirationDate
+      userId: responseData.localId
     });
   },
   tryLogin(context) {
@@ -65,8 +63,8 @@ export default {
     const tokenExpiration = localStorage.getItem('tokenExpiration');
 
     const expiresIn = +tokenExpiration - new Date().getTime();
-    
-    if (expiresIn < 10000) {
+
+    if (expiresIn < 0) {
       return;
     }
 
@@ -77,7 +75,7 @@ export default {
     if (token && userId) {
       context.commit('setUser', {
         token: token,
-        userId: userId,
+        userId: userId
       });
     }
   },
@@ -90,7 +88,7 @@ export default {
 
     context.commit('setUser', {
       token: null,
-      userId: null,
+      userId: null
     });
   },
   autoLogout(context) {
